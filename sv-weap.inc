@@ -48,8 +48,8 @@ public OnPlayerConnect(playerid)
 public OnPlayerSpawn(playerid)
 {	
 	// Reset weapons and ammo
-	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 0);
-	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
 	
 	// Allow spawn weapons
 	if(B_Weapon_Data[playerid][B_Spawn_Weapon][0] > 0)
@@ -120,8 +120,8 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 	{
 		case ORPC_ResetPlayerWeapons: // ResetPlayerWeapons
 		{
-			BWH_memset(B_Weapon_Data[playerid][B_Weapon], 0);
-			BWH_memset(B_Weapon_Data[playerid][B_Ammo], 0);
+			BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
+			BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
 		}
 		case ORPC_GivePlayerWeapon: // GivePlayerWeapon
 		{
@@ -317,37 +317,41 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 	{
 		case IPacket_OnFootSync:
 		{
-			new BWH_weaponid;
+			new BWH_weaponid, BWH_additionalkey;
 		
-			BS_SetReadOffset(bs, 298);
+			BS_SetReadOffset(bs, 296);
 			
 			BS_ReadValue(
 				bs,
+				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
 				PR_BITS, BWH_weaponid, 6
 			);
 			
 			BS_ResetReadPointer(bs);
 			
 			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
-			{
-				BS_SetWriteOffset(bs, 298);
+			{				
+				BS_SetWriteOffset(bs, 296);
 				
 				BS_WriteValue(
 					bs,
+					PR_BITS, BWH_additionalkey, 2,
 					PR_BITS, 0, 6
 				);
 				
 				BS_ResetWritePointer(bs); 
 			}
+			return 1;
 		}
 		case IPacket_PassengerSync:
 		{
-			new BWH_weaponid;
+			new BWH_weaponid, BWH_additionalkey;
 		
-			BS_SetReadOffset(bs, 34);
+			BS_SetReadOffset(bs, 32);
 			
 			BS_ReadValue(
 				bs,
+				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
 				PR_BITS, BWH_weaponid, 6
 			);
 			
@@ -355,10 +359,11 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
 			{
-				BS_SetWriteOffset(bs, 34);
+				BS_SetWriteOffset(bs, 32);
 				
 				BS_WriteValue(
 					bs,
+					PR_BITS, BWH_additionalkey, 2,
 					PR_BITS, 0, 6
 				);
 				
@@ -367,12 +372,13 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 		}
 		case IPacket_DriverSync:
 		{
-			new BWH_weaponid;
+			new BWH_weaponid, BWH_additionalkey;
 		
-			BS_SetReadOffset(bs, 442);
+			BS_SetReadOffset(bs, 440);
 			
 			BS_ReadValue(
 				bs,
+				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
 				PR_BITS, BWH_weaponid, 6
 			);
 			
@@ -380,10 +386,11 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
 			{
-				BS_SetWriteOffset(bs, 442);
+				BS_SetWriteOffset(bs, 440);
 				
 				BS_WriteValue(
 					bs,
+					PR_BITS, BWH_additionalkey, 2,
 					PR_BITS, 0, 6
 				);
 				
@@ -400,74 +407,36 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 }
 
 /*Internal*/
-static BWH_memset(aArray[], iValue, iSize = sizeof(aArray))  // memset - Slice
+static BWH_memset(variable[], cells, value) // Slice - http://forum.sa-mp.com/showpost.php?p=1974747
 {
-	new iAddress;
+	new address;
 	
-	#emit LOAD.S.pri 12
-	#emit STOR.S.pri iAddress
+	#emit LOAD.S.pri  variable
+	#emit STOR.S.pri  address
 	
-	iSize *= 4;
+	BWH_raw_memset(address, cells, value);
+}
+
+static BWH_raw_memset(address, cells, value) // Slice - http://forum.sa-mp.com/showpost.php?p=1974747
+{
+	new param_adr;
 	
-	while (iSize > 0) 
-	{
-		if (iSize >= 4096) 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 4096
-		
-			iSize    -= 4096;
-			iAddress += 4096;
-		} 
-		else if (iSize >= 1024) 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 1024
-
-			iSize    -= 1024;
-			iAddress += 1024;
-		} 
-		else if (iSize >= 256) 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 256
-
-			iSize    -= 256;
-			iAddress += 256;
-		} 
-		else if (iSize >= 64) 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 64
-
-			iSize    -= 64;
-			iAddress += 64;
-		} 
-		else if (iSize >= 16) 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 16
-
-			iSize    -= 16;
-			iAddress += 16;
-		} 
-		else 
-		{
-			#emit LOAD.S.alt iAddress
-			#emit LOAD.S.pri iValue
-			#emit FILL 4
-
-			iSize    -= 4;
-			iAddress += 4;
-		}
-	}
+	#emit LCTRL       6
+	#emit MOVE.alt
+	#emit LCTRL       0
+	#emit ADD
+	#emit MOVE.alt
+	#emit LCTRL       1
+	#emit SUB.alt
+	#emit ADD.C       92
+	#emit STOR.S.pri  param_adr
+	#emit LOAD.S.pri  cells
+	#emit SHL.C.pri   2
+	#emit SREF.S.pri  param_adr
 	
-	#pragma unused aArray
+	#emit LOAD.S.alt  address
+	#emit LOAD.S.pri  value
+	#emit FILL        0
 }
 
 /*Hooks*/
