@@ -303,7 +303,7 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 		}
 	}
 	
-    #if defined BWH_OnOutcomingRPC
+	#if defined BWH_OnOutcomingRPC
 		return BWH_OnOutcomingRPC(playerid, rpcid, BitStream:bs);
 	#else
 		return 1;
