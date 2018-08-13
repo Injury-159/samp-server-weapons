@@ -1,4 +1,4 @@
-#if defined _B_SERVER_HACK_
+#if defined _B_WEAPON_HACK_
 	#endinput
 #endif
 #define _B_WEAPON_HACK_
