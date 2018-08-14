@@ -329,7 +329,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
 			{				
 				BS_SetWriteOffset(bs, 296);
 				
@@ -357,7 +357,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
 			{
 				BS_SetWriteOffset(bs, 32);
 				
@@ -384,7 +384,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(!B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
 			{
 				BS_SetWriteOffset(bs, 440);
 				
