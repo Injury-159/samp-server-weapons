@@ -12,7 +12,9 @@ enum B_Weapon_Data_Enum
 	bool:B_Weapon[46],
 	B_Ammo[46],
 	B_Spawn_Weapon[3],
-	B_Spawn_Ammo[3]
+	B_Spawn_Ammo[3],
+	B_AmmoTD_UpdateTime,
+	PlayerText:Ammo_TextDraw
 }
 
 /*Variables*/
@@ -33,12 +35,67 @@ const ORPC_SetPlayerAmmo = 145;
 /*OnPlayerConnect*/
 public OnPlayerConnect(playerid)
 {
+	// Reset weapons and ammo
+	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
+	
 	B_Weapon_Data[playerid][B_Spawn_Weapon][0] = 0;
 	B_Weapon_Data[playerid][B_Spawn_Weapon][1] = 0;
 	B_Weapon_Data[playerid][B_Spawn_Weapon][2] = 0;
 	
+	B_Weapon_Data[playerid][Ammo_TextDraw] = CreatePlayerTextDraw(playerid, 520.850097, 63.333305, " ");
+	PlayerTextDrawLetterSize(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 0.363750, 1.360833);
+	PlayerTextDrawAlignment(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 2);
+	PlayerTextDrawColor(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], -1378294017);
+	PlayerTextDrawSetShadow(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 0);
+	PlayerTextDrawSetOutline(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 1);
+	PlayerTextDrawBackgroundColor(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 255);
+	PlayerTextDrawFont(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 1);
+	PlayerTextDrawSetProportional(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 1);
+	PlayerTextDrawSetShadow(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], 0);
+	
+	PlayerTextDrawShow(playerid, B_Weapon_Data[playerid][Ammo_TextDraw]);
+	
 	#if defined BWH_OnPlayerConnect
 		return BWH_OnPlayerConnect(playerid);
+	#else
+		return 1;
+	#endif
+}
+
+public OnPlayerUpdate(playerid)
+{
+	new BWH_time = gettime();
+	
+	if(B_Weapon_Data[playerid][B_AmmoTD_UpdateTime] < BWH_time)
+	{
+		B_Weapon_Data[playerid][B_AmmoTD_UpdateTime] = BWH_time;
+				
+		new BWH_weaponid = GetPlayerWeapon(playerid);
+		
+		if(B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+		{
+			if((BWH_weaponid > 21 && BWH_weaponid < 35) || BWH_weaponid == 38)
+			{
+				new BWH_ammo_str[7];
+				
+				format(BWH_ammo_str, sizeof(BWH_ammo_str), "%i", B_Weapon_Data[playerid][B_Ammo][BWH_weaponid]);
+					
+				PlayerTextDrawSetString(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], BWH_ammo_str);
+			}
+			else
+			{
+				PlayerTextDrawSetString(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], " ");
+			}
+		}
+		else
+		{
+			PlayerTextDrawSetString(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], " ");
+		}
+	}
+	
+	#if defined BWH_OnPlayerUpdate
+		return BWH_OnPlayerUpdate(playerid);
 	#else
 		return 1;
 	#endif
@@ -80,29 +137,20 @@ public OnPlayerSpawn(playerid)
 /*OnPlayerWeaponShot*/
 public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {			
-	if(!B_Weapon_Data[playerid][B_Weapon][weaponid]) // Not given by the server? Don't sync the bullets.
+	if(!B_Weapon_Data[playerid][B_Weapon][weaponid]) // Not given by the server or removed? Don't sync the bullets.
 	{
 		return 0;
 	}
 	else // Otherwise...
 	{
-		new BWH_Ammo = GetPlayerAmmo(playerid); 
-				
-		if(BWH_Ammo > B_Weapon_Data[playerid][B_Ammo][weaponid] && (weaponid != 28 && weaponid != 32 && weaponid != 38)) // These weapons are problematic, let's exclude them for now.
-		{
-			return 0;
-		}
-		else if(BWH_Ammo < B_Weapon_Data[playerid][B_Ammo][weaponid])
-		{
-			B_Weapon_Data[playerid][B_Ammo][weaponid] = BWH_Ammo;
-		}
-		else if(B_Weapon_Data[playerid][B_Ammo][weaponid] > 1)
+		if(B_Weapon_Data[playerid][B_Ammo][weaponid] > 1) // The idea here is to remove the weapon if there is no server ammo, so bullets won't be synced.
 		{
 			B_Weapon_Data[playerid][B_Ammo][weaponid]--;
 		}
 		else
 		{
 			B_Weapon_Data[playerid][B_Weapon][weaponid] = false;
+			SetPlayerAmmo(playerid, weaponid, 0); // To ensure it is removed.
 		}
 	}
 			
@@ -161,7 +209,7 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 					BWH_ammo += B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp]; 
 				}
 			}
-			else if(BWH_slot < 6 || BWH_slot > 2) // If slot is 3, 4 or 5 and if it got into this case, that means different weapons can sum the current ammo. We sum the ammo in such case.
+			else if(BWH_slot < 6 && BWH_slot > 2) // If slot is 3, 4 or 5 and if it got into this case, that means different weapons can sum the current ammo. We sum the ammo in such case.
 			{
 				if(B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp] > 0) // If ammo in that slot is above 0, we sum it (Take into account that empty weapons remain in weapon data, so this is actually needed).
 				{
@@ -171,19 +219,27 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 				}
 			}
 			
-			if(B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp] < BWH_WeaponData_ammo_temp || B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp] > BWH_WeaponData_ammo_temp) // In case the player has hacked ammo, let's try to force it to the value stored. If they NOP it, the bullets still aren't going to be synced, so it won't be any problem.
-			{
-				SetPlayerAmmo(playerid, BWH_WeaponData_weap_temp, B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp]);
-			}
-			
 			B_Weapon_Data[playerid][B_Weapon][BWH_weaponid] = true;
 			B_Weapon_Data[playerid][B_Ammo][BWH_weaponid] = BWH_ammo;
 			
 			BS_ResetReadPointer(bs);
+			
+			if((BWH_weaponid > 21 && BWH_weaponid < 35) || BWH_weaponid == 38) // Weapons that fire bullets only.
+			{
+				BS_SetWriteOffset(bs, 32);
+				
+				BS_WriteValue(
+					bs,
+					PR_UINT32, 8000000 // The client ammo doesn't matter. As long as it is not visible in the HUD and doesn't run out, that is good.
+				);
+				
+				BS_ResetWritePointer(bs);
+			}
 		}
 		case ORPC_SetSpawnInfo: // SetSpawnInfo
 		{
 			BS_SetReadOffset(bs, 176);
+			BS_SetWriteOffset(bs, 176);
 			
 			new 
 				BWH_SpawnWeapons1, 
@@ -206,29 +262,47 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 			{
 				B_Weapon_Data[playerid][B_Spawn_Weapon][0] = BWH_SpawnWeapons1;
 				BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][0]);
+				
+				if((BWH_SpawnWeapons1 > 21 && BWH_SpawnWeapons1 < 35) || BWH_SpawnWeapons1 == 38) // Weapons that fire bullets only.
+				{
+					BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+				}
 			}
 			else
 			{
 				BS_SetReadOffset(bs, 208);
+				BS_SetWriteOffset(bs, 208);
 			}
 				
 			if(BWH_SpawnWeapons2 > 0)
 			{
 				B_Weapon_Data[playerid][B_Spawn_Weapon][1] = BWH_SpawnWeapons2;
 				BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][1]);
+				
+				if((BWH_SpawnWeapons2 > 21 && BWH_SpawnWeapons2 < 35) || BWH_SpawnWeapons2 == 38) // Weapons that fire bullets only.
+				{
+					BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+				}
 			}
 			else
 			{
 				BS_SetReadOffset(bs, 240);
+				BS_SetWriteOffset(bs, 240);
 			}
 				
 			if(BWH_SpawnWeapons3 > 0)
 			{
 				B_Weapon_Data[playerid][B_Spawn_Weapon][2] = BWH_SpawnWeapons3;
 				BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][2]);
+				
+				if((BWH_SpawnWeapons3 > 21 && BWH_SpawnWeapons3 < 35) || BWH_SpawnWeapons3 == 38) // Weapons that fire bullets only.
+				{
+					BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+				}
 			}
 			
 			BS_ResetReadPointer(bs);
+			BS_ResetWritePointer(bs);
 		}
 		case ORPC_RequestClass: // RequestClass
 		{
@@ -252,6 +326,7 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 					BWH_SpawnWeapons3;
 				
 				BS_SetReadOffset(bs, 184);
+				BS_SetWriteOffset(bs, 184);
 								
 				BS_ReadValue(
 					bs,
@@ -264,40 +339,71 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 				{
 					B_Weapon_Data[playerid][B_Spawn_Weapon][0] = BWH_SpawnWeapons1;
 					BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][0]);
+					
+					if((BWH_SpawnWeapons1 > 21 && BWH_SpawnWeapons1 < 35) || BWH_SpawnWeapons1 == 38) // Weapons that fire bullets only.
+					{
+						BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+					}
 				}
 				else
 				{
 					BS_SetReadOffset(bs, 216);
+					BS_SetWriteOffset(bs, 216);
 				}
 				
 				if(BWH_SpawnWeapons2 > 0)
 				{
 					B_Weapon_Data[playerid][B_Spawn_Weapon][1] = BWH_SpawnWeapons2;
 					BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][1]);
+					
+					if((BWH_SpawnWeapons2 > 21 && BWH_SpawnWeapons2 < 35) || BWH_SpawnWeapons2 == 38) // Weapons that fire bullets only.
+					{
+						BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+					}
 				}
 				else
 				{
 					BS_SetReadOffset(bs, 248);
+					BS_SetWriteOffset(bs, 248);
 				}
 				
 				if(BWH_SpawnWeapons3 > 0)
 				{
 					B_Weapon_Data[playerid][B_Spawn_Weapon][2] = BWH_SpawnWeapons3;
 					BS_ReadInt32(bs, B_Weapon_Data[playerid][B_Spawn_Ammo][2]);
+					
+					if((BWH_SpawnWeapons3 > 21 && BWH_SpawnWeapons3 < 35) || BWH_SpawnWeapons3 == 38) // Weapons that fire bullets only.
+					{
+						BS_WriteInt32(bs, 8000000); // We must make sure the player doesn't run out of ammo and that it doesn't show in the HUD.
+					}
 				}
 			}
 
 			BS_ResetReadPointer(bs);
+			BS_ResetWritePointer(bs);
 		}
 		case ORPC_SetPlayerAmmo: // SetPlayerAmmo
 		{
-			new BWH_weaponid;
-			
+			new BWH_weaponid, BWH_ammo;
+						
 			BS_ReadValue(
 				bs,
 				PR_UINT8, BWH_weaponid,
-				PR_UINT16, B_Weapon_Data[playerid][B_Ammo][BWH_weaponid]
+				PR_INT16, BWH_ammo
 			);
+			
+			if(BWH_ammo > 0 && ((BWH_weaponid > 21 && BWH_weaponid < 35) || BWH_weaponid == 38))
+			{
+				B_Weapon_Data[playerid][B_Ammo][BWH_weaponid] = BWH_ammo;
+				return 0; // Don't allow it to be sent.
+			}
+			else
+			{	
+				if(BWH_weaponid > 15) // Melee weaps can't be removed by setting their ammo to 0.
+				{
+					B_Weapon_Data[playerid][B_Weapon][BWH_weaponid] = false;
+				}
+			}
 						
 			BS_ResetReadPointer(bs);
 		}
@@ -482,6 +588,17 @@ forward BWH_OnPlayerConnect(playerid);
 
 #if defined BWH_OnPlayerSpawn
 forward BWH_OnPlayerSpawn(playerid);
+#endif
+
+#if defined _ALS_OnPlayerUpdate
+#undef OnPlayerUpdate
+#else
+#define _ALS_OnPlayerUpdate
+#endif
+#define OnPlayerUpdate BWH_OnPlayerUpdate
+
+#if defined BWH_OnPlayerUpdate
+forward BWH_OnPlayerUpdate(playerid);
 #endif
 
 #if defined _ALS_OnPlayerWeaponShot
