@@ -9,8 +9,8 @@
 /*Enum*/
 enum B_Weapon_Data_Enum
 {
-	bool:B_Weapon[46],
-	B_Ammo[46],
+	B_Weapon[13],
+	B_Ammo[13],
 	B_Spawn_Weapon[3],
 	B_Spawn_Ammo[3],
 	B_AmmoTD_UpdateTime,
@@ -19,6 +19,57 @@ enum B_Weapon_Data_Enum
 
 /*Variables*/
 static B_Weapon_Data[MAX_PLAYERS][B_Weapon_Data_Enum];
+
+static const B_Weapon_Slot[] = 
+{
+	0, // Fist
+	0, // Brass Knuckles
+	1, // Golf Club
+	1, // Nightstick
+	1, // Knife
+	1, // Baseball Bat
+	1, // Shovel
+	1, // Pool Cue
+	1, // Katana
+	1, // Chainsaw
+	10, // Purple Dildo
+	10, // Dildo
+	10, // Vibrator
+	10, // Small Vibrator
+	10, // Flowers
+	10, // Cane
+	8, // Grenade
+	8, // Tear Gas
+	8, // Molotov Cocktail
+	0, //
+	0, //
+	0, //
+	2, // 9mm
+	2, // Silenced 9mm
+	2, // Desert Eagle
+	3, // Shotgun 
+	3, // Sawnoff Shotgun
+	3, // Combat Shotgun
+	4, // Micro SMG
+	4, // MP5
+	5, // AK-47
+	5, // M4
+	4, // Tec-9
+	6, // Country Rifle
+	6, // Sniper Rifle
+	7, // Rocket Launcher
+	7, // Heat Seeker
+	7, // Flamethrower
+	7, // Minigun
+	8, // Satchel Charge
+	12, // Detonator
+	9, // Spraycan
+	9, // Fire Extinguisher
+	9, // Camera
+	11, // Night Vis. Goggles
+	11, // Thermal Goggles
+	11 // Parachute
+};
 	
 /*Incoming Packet IDs*/
 const IPacket_DriverSync = 200;
@@ -36,8 +87,8 @@ const ORPC_SetPlayerAmmo = 145;
 public OnPlayerConnect(playerid)
 {
 	// Reset weapons and ammo
-	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
-	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 13, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 13, 0);
 	
 	B_Weapon_Data[playerid][B_Spawn_Weapon][0] = 0;
 	B_Weapon_Data[playerid][B_Spawn_Weapon][1] = 0;
@@ -73,13 +124,13 @@ public OnPlayerUpdate(playerid)
 				
 		new BWH_weaponid = GetPlayerWeapon(playerid);
 		
-		if(B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+		if(B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] == BWH_weaponid)
 		{
 			if((BWH_weaponid > 21 && BWH_weaponid < 35) || BWH_weaponid == 38)
 			{
 				new BWH_ammo_str[7];
 				
-				format(BWH_ammo_str, sizeof(BWH_ammo_str), "%i", B_Weapon_Data[playerid][B_Ammo][BWH_weaponid]);
+				format(BWH_ammo_str, sizeof(BWH_ammo_str), "%i", B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weaponid]]);
 					
 				PlayerTextDrawSetString(playerid, B_Weapon_Data[playerid][Ammo_TextDraw], BWH_ammo_str);
 			}
@@ -105,26 +156,26 @@ public OnPlayerUpdate(playerid)
 public OnPlayerSpawn(playerid)
 {	
 	// Reset weapons and ammo
-	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
-	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Weapon], 13, 0);
+	BWH_memset(B_Weapon_Data[playerid][B_Ammo], 13, 0);
 	
 	// Allow spawn weapons
 	if(B_Weapon_Data[playerid][B_Spawn_Weapon][0] > 0)
 	{
-		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Data[playerid][B_Spawn_Weapon][0]] = true;
-		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Data[playerid][B_Spawn_Weapon][0]] = B_Weapon_Data[playerid][B_Spawn_Ammo][0];
+		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][0]]] = true;
+		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][0]]] = B_Weapon_Data[playerid][B_Spawn_Ammo][0];
 	}
 	
 	if(B_Weapon_Data[playerid][B_Spawn_Weapon][1] > 0)
 	{
-		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Data[playerid][B_Spawn_Weapon][1]] = true;
-		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Data[playerid][B_Spawn_Weapon][1]] = B_Weapon_Data[playerid][B_Spawn_Ammo][1];
+		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][1]]] = true;
+		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][1]]] = B_Weapon_Data[playerid][B_Spawn_Ammo][1];
 	}
 	
 	if(B_Weapon_Data[playerid][B_Spawn_Weapon][2] > 0)
 	{
-		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Data[playerid][B_Spawn_Weapon][2]] = true;
-		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Data[playerid][B_Spawn_Weapon][2]] = B_Weapon_Data[playerid][B_Spawn_Ammo][2];
+		B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][2]]] = true;
+		B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[B_Weapon_Data[playerid][B_Spawn_Weapon][2]]] = B_Weapon_Data[playerid][B_Spawn_Ammo][2];
 	}
 	
 	#if defined BWH_OnPlayerSpawn
@@ -137,19 +188,19 @@ public OnPlayerSpawn(playerid)
 /*OnPlayerWeaponShot*/
 public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
 {			
-	if(!B_Weapon_Data[playerid][B_Weapon][weaponid]) // Not given by the server or removed? Don't sync the bullets.
+	if(!B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[weaponid]]) // Not given by the server or removed? Don't sync the bullets.
 	{
 		return 0;
 	}
 	else // Otherwise...
 	{
-		if(B_Weapon_Data[playerid][B_Ammo][weaponid] > 1) // The idea here is to remove the weapon if there is no server ammo, so bullets won't be synced.
+		if(B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[weaponid]] > 1) // The idea here is to remove the weapon if there is no server ammo, so bullets won't be synced.
 		{
-			B_Weapon_Data[playerid][B_Ammo][weaponid]--;
+			B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[weaponid]]--;
 		}
 		else
 		{
-			B_Weapon_Data[playerid][B_Weapon][weaponid] = false;
+			B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[weaponid]] = false;
 			SetPlayerAmmo(playerid, weaponid, 0); // To ensure it is removed.
 		}
 	}
@@ -168,59 +219,29 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 	{
 		case ORPC_ResetPlayerWeapons: // ResetPlayerWeapons
 		{
-			BWH_memset(B_Weapon_Data[playerid][B_Weapon], 46, 0);
-			BWH_memset(B_Weapon_Data[playerid][B_Ammo], 46, 0);
+			BWH_memset(B_Weapon_Data[playerid][B_Weapon], 13, 0);
+			BWH_memset(B_Weapon_Data[playerid][B_Ammo], 13, 0);
 		}
 		case ORPC_GivePlayerWeapon: // GivePlayerWeapon
 		{
-			new BWH_weaponid, BWH_ammo, BWH_slot;
+			new BWH_weaponid, BWH_ammo;
 			
 			BS_ReadValue(
 				bs,
 				PR_UINT32, BWH_weaponid,
 				PR_UINT32, BWH_ammo
 			);
-			
-			switch(BWH_weaponid) // Let's get the slot id of the weapon we are going to give belongs to.
-			{
-				case 0, 1: BWH_slot = 0;
-				case 2..9: BWH_slot = 1;
-				case 10..15: BWH_slot = 10;
-				case 16..18, 39: BWH_slot = 8;
-				case 22..24: BWH_slot = 2; 
-				case 25..27: BWH_slot = 3;
-				case 28, 29, 32: BWH_slot = 4;
-				case 30, 31: BWH_slot = 5;
-				case 33, 34: BWH_slot = 6;
-				case 35..38: BWH_slot = 7;
-				case 40: BWH_slot = 12;
-				case 41..43: BWH_slot = 9;
-				case 44..46: BWH_slot = 11;
-			}
-			
-			new BWH_WeaponData_weap_temp, BWH_WeaponData_ammo_temp;
-				
-			GetPlayerWeaponData(playerid, BWH_slot, BWH_WeaponData_weap_temp, BWH_WeaponData_ammo_temp); // Let's get the current weapon id on that slot.
-			
-			if(BWH_weaponid == BWH_WeaponData_weap_temp) // We sum the ammo if weapon is the same.
+							
+			if((BWH_weaponid == B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]]) || (B_Weapon_Slot[BWH_weaponid] < 6 && B_Weapon_Slot[BWH_weaponid] > 2)) // We sum the ammo if weapon is the same or if slot is 3, 4 & 5.
 			{				
-				if(B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp] > 0) // If ammo in that slot is above 0, we sum it (Take into account that empty weapons remain in weapon data, so this is actually needed).
+				if(B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weaponid]] > 0) // If ammo in that slot is above 0, we sum it (Take into account that empty weapons remain in weapon data, so this is actually needed).
 				{
-					BWH_ammo += B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp]; 
-				}
-			}
-			else if(BWH_slot < 6 && BWH_slot > 2) // If slot is 3, 4 or 5 and if it got into this case, that means different weapons can sum the current ammo. We sum the ammo in such case.
-			{
-				if(B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp] > 0) // If ammo in that slot is above 0, we sum it (Take into account that empty weapons remain in weapon data, so this is actually needed).
-				{
-					BWH_ammo += B_Weapon_Data[playerid][B_Ammo][BWH_WeaponData_weap_temp]; 
-					
-					B_Weapon_Data[playerid][B_Weapon][BWH_WeaponData_weap_temp] = false; // Since the weapon id is different (even tho it is the same slot), we remove it.
+					BWH_ammo += B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weaponid]]; 
 				}
 			}
 			
-			B_Weapon_Data[playerid][B_Weapon][BWH_weaponid] = true;
-			B_Weapon_Data[playerid][B_Ammo][BWH_weaponid] = BWH_ammo;
+			B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] = BWH_weaponid;
+			B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weaponid]] = BWH_ammo;
 			
 			BS_ResetReadPointer(bs);
 			
@@ -394,14 +415,14 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 			
 			if(BWH_ammo > 0 && ((BWH_weaponid > 21 && BWH_weaponid < 35) || BWH_weaponid == 38))
 			{
-				B_Weapon_Data[playerid][B_Ammo][BWH_weaponid] = BWH_ammo;
+				B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weaponid]] = BWH_ammo;
 				return 0; // Don't allow it to be sent.
 			}
 			else
 			{	
 				if(BWH_weaponid > 15) // Melee weaps can't be removed by setting their ammo to 0.
 				{
-					B_Weapon_Data[playerid][B_Weapon][BWH_weaponid] = false;
+					B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] = 0;
 				}
 			}
 						
@@ -435,7 +456,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
 			{				
 				BS_SetWriteOffset(bs, 296);
 				
@@ -463,7 +484,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
 			{
 				BS_SetWriteOffset(bs, 32);
 				
@@ -490,7 +511,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 			
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && !B_Weapon_Data[playerid][B_Weapon][BWH_weaponid])
+			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
 			{
 				BS_SetWriteOffset(bs, 440);
 				
