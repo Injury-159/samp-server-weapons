@@ -533,6 +533,24 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
     #endif
 }
 
+stock BWH_GetPlayerWeaponData(playerid, slot, &weapon, &ammo)
+{
+    if(!IsPlayerConnected(playerid) || (slot < 0 || slot > 12))
+	{
+		return 0;
+	}
+	
+	GetPlayerWeaponData(playerid, slot, weapon, ammo);
+	
+	weapon = B_Weapon_Data[playerid][B_Weapon][slot];
+	
+	if((weapon > 21 && weapon < 35) || weapon == 38)
+	{
+		ammo = B_Weapon_Data[playerid][B_Ammo][slot];
+	}
+    return 1;
+}
+
 /*Internal*/
 static BWH_memset(variable[], cells, value) // Slice - http://forum.sa-mp.com/showpost.php?p=1974747
 {
@@ -632,3 +650,10 @@ forward BWH_OnPlayerUpdate(playerid);
 #if defined BWH_OnPlayerWeaponShot
 forward BWH_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ);
 #endif
+
+#if defined _ALS_GetPlayerWeaponData
+    #undef GetPlayerWeaponData
+#else
+    #define _ALS_GetPlayerWeaponData
+#endif
+#define GetPlayerWeaponData BWH_GetPlayerWeaponData
