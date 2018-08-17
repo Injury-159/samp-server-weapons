@@ -253,8 +253,6 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 					bs,
 					PR_UINT32, 8000000 // The client ammo doesn't matter. As long as it is not visible in the HUD and doesn't run out, that is good.
 				);
-				
-				BS_ResetWritePointer(bs);
 			}
 		}
 		case ORPC_SetSpawnInfo: // SetSpawnInfo
@@ -323,7 +321,6 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 			}
 			
 			BS_ResetReadPointer(bs);
-			BS_ResetWritePointer(bs);
 		}
 		case ORPC_RequestClass: // RequestClass
 		{
@@ -401,7 +398,6 @@ public OnOutcomingRPC(playerid, rpcid, BitStream:bs)
 			}
 
 			BS_ResetReadPointer(bs);
-			BS_ResetWritePointer(bs);
 		}
 		case ORPC_SetPlayerAmmo: // SetPlayerAmmo
 		{
@@ -444,84 +440,51 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 	{
 		case IPacket_OnFootSync:
 		{
-			new BWH_weaponid, BWH_additionalkey;
-		
-			BS_SetReadOffset(bs, 296);
+			new BWH_OnFootData[PR_OnFootSync];
+
+			BS_IgnoreBits(bs, 8);
 			
-			BS_ReadValue(
-				bs,
-				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
-				PR_BITS, BWH_weaponid, 6
-			);
-			
+			BS_ReadOnFootSync(bs, BWH_OnFootData);
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
-			{				
-				BS_SetWriteOffset(bs, 296);
-				
-				BS_WriteValue(
-					bs,
-					PR_BITS, BWH_additionalkey, 2,
-					PR_BITS, 0, 6
-				);
-				
-				BS_ResetWritePointer(bs); 
+			if(BWH_OnFootData[PR_weaponId] != 46 && BWH_OnFootData[PR_weaponId] != 40 && BWH_OnFootData[PR_weaponId] > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_OnFootData[PR_weaponId]]] != BWH_OnFootData[PR_weaponId])
+			{
+				BS_SetWriteOffset(bs, 8);
+				BWH_OnFootData[PR_weaponId] = 0;
+				BS_WriteOnFootSync(bs, BWH_OnFootData);
 			}
 			return 1;
 		}
 		case IPacket_PassengerSync:
 		{
-			new BWH_weaponid, BWH_additionalkey;
-		
-			BS_SetReadOffset(bs, 32);
+			new BWH_passengerData[PR_PassengerSync];
 			
-			BS_ReadValue(
-				bs,
-				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
-				PR_BITS, BWH_weaponid, 6
-			);
+			BS_IgnoreBits(bs, 8);
 			
+			BS_ReadPassengerSync(bs, BWH_passengerData);
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
+			if(BWH_passengerData[PR_weaponId] != 46 && BWH_passengerData[PR_weaponId] != 40 && BWH_passengerData[PR_weaponId] > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_passengerData[PR_weaponId]]] != BWH_passengerData[PR_weaponId])
 			{
-				BS_SetWriteOffset(bs, 32);
-				
-				BS_WriteValue(
-					bs,
-					PR_BITS, BWH_additionalkey, 2,
-					PR_BITS, 0, 6
-				);
-				
-				BS_ResetWritePointer(bs); 
+				BS_SetWriteOffset(bs, 8);
+				BWH_passengerData[PR_weaponId] = 0;
+				BS_WritePassengerSync(bs, BWH_passengerData);
 			}
 		}
 		case IPacket_DriverSync:
 		{
-			new BWH_weaponid, BWH_additionalkey;
+			new BWH_inCarData[PR_InCarSync];
 		
-			BS_SetReadOffset(bs, 440);
+			BS_IgnoreBits(bs, 8);
 			
-			BS_ReadValue(
-				bs,
-				PR_BITS, BWH_additionalkey, 2, // There is an issue with including PR_BITS on SetWriteOffset, so we have to actually read it to write later.
-				PR_BITS, BWH_weaponid, 6
-			);
-			
+			BS_ReadInCarSync(bs, BWH_inCarData);
 			BS_ResetReadPointer(bs);
 			
-			if(BWH_weaponid != 46 && BWH_weaponid != 40 && BWH_weaponid > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weaponid]] != BWH_weaponid)
+			if(BWH_inCarData[PR_weaponId] != 46 && BWH_inCarData[PR_weaponId] != 40 && BWH_inCarData[PR_weaponId] > 0 && B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_inCarData[PR_weaponId]]] != BWH_inCarData[PR_weaponId])
 			{
-				BS_SetWriteOffset(bs, 440);
-				
-				BS_WriteValue(
-					bs,
-					PR_BITS, BWH_additionalkey, 2,
-					PR_BITS, 0, 6
-				);
-				
-				BS_ResetWritePointer(bs); 
+				BS_SetWriteOffset(bs, 8);
+				BWH_inCarData[PR_weaponId] = 0;
+				BS_WriteInCarSync(bs, BWH_inCarData);
 			}
 		}
 	}
