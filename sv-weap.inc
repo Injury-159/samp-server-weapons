@@ -498,7 +498,7 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 
 stock BWH_GetPlayerWeaponData(playerid, slot, &weapon, &ammo)
 {
-    if(!IsPlayerConnected(playerid) || (slot < 0 || slot > 12))
+	if(!IsPlayerConnected(playerid) || (slot < 0 || slot > 12))
 	{
 		return 0;
 	}
@@ -511,7 +511,7 @@ stock BWH_GetPlayerWeaponData(playerid, slot, &weapon, &ammo)
 	{
 		ammo = B_Weapon_Data[playerid][B_Ammo][slot];
 	}
-    return 1;
+	return 1;
 }
 
 /*Internal*/
@@ -615,8 +615,8 @@ forward BWH_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Flo
 #endif
 
 #if defined _ALS_GetPlayerWeaponData
-    #undef GetPlayerWeaponData
+#undef GetPlayerWeaponData
 #else
-    #define _ALS_GetPlayerWeaponData
+#define _ALS_GetPlayerWeaponData
 #endif
 #define GetPlayerWeaponData BWH_GetPlayerWeaponData
