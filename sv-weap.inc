@@ -453,7 +453,6 @@ public OnIncomingPacket(playerid, packetid, BitStream:bs)
 				BWH_OnFootData[PR_weaponId] = 0;
 				BS_WriteOnFootSync(bs, BWH_OnFootData);
 			}
-			return 1;
 		}
 		case IPacket_PassengerSync:
 		{
