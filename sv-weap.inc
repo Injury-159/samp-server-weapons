@@ -513,6 +513,29 @@ stock BWH_GetPlayerWeaponData(playerid, slot, &weapon, &ammo)
 	return 1;
 }
 
+stock BWH_GetPlayerAmmo(playerid)
+{
+	if(!IsPlayerConnected(playerid))
+	{
+		return 0;
+	}
+	
+	new BWH_weapon = GetPlayerWeapon(playerid);
+	
+	if(B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weapon]] == BWH_weapon)
+	{
+		if((BWH_weapon > 21 && BWH_weapon < 35) || BWH_weapon == 38)
+		{
+			return B_Weapon_Data[playerid][B_Ammo][B_Weapon_Slot[BWH_weapon]];
+		}
+		else
+		{
+			return GetPlayerAmmo(playerid);
+		}
+	}
+	return 0;
+}
+
 /*Internal*/
 static BWH_memset(variable[], cells, value) // Slice - http://forum.sa-mp.com/showpost.php?p=1974747
 {
@@ -619,3 +642,10 @@ forward BWH_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Flo
 #define _ALS_GetPlayerWeaponData
 #endif
 #define GetPlayerWeaponData BWH_GetPlayerWeaponData
+
+#if defined _ALS_GetPlayerAmmo
+#undef GetPlayerAmmo
+#else
+#define _ALS_GetPlayerAmmo
+#endif
+#define GetPlayerAmmo BWH_GetPlayerAmmo
