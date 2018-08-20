@@ -525,7 +525,7 @@ stock BWH_GetPlayerAmmo(playerid)
 	
 	new BWH_weapon = GetPlayerWeapon(playerid);
 	
-	if((B_Weapon_Data[playerid][B_Weapon][B_Weapon_Slot[BWH_weapon]] == BWH_weapon) || BWH_weapon == 46 || BWH_weapon == 40)
+	if(BWH_weapon) // GetPlayerWeapon will return 0 if the weapon is not given by the server or if it's fists.
 	{
 		if((BWH_weapon > 21 && BWH_weapon < 35) || BWH_weapon == 38)
 		{
